@@ -1,61 +1,55 @@
 import os
 from tensorflow.keras.models import load_model
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps 
 import numpy as np
 import time
 
-np.set_printoptions(suppress=True)
-
+np.set_printoptions(suppress=True) # Disable scientific notation for clarity
 model = load_model('model/keras_model.h5', compile=False)
 class_names = open("labels.txt", "r").readlines()
+data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
 
 carpeta = "C:\\Users\\ftorr\\Downloads\\converted_keras\\imagenes"
 archivos = os.listdir(carpeta)
 
-batch_size = 32  
-image_size = (224, 224)  
 score = 0
 count = 1
 
-def preprocess_image(image_path):
-    image = Image.open(image_path).convert("RGB")
-    image = ImageOps.fit(image, image_size, Image.Resampling.LANCZOS)
+start_time = time.time()
+
+for archivo in archivos:
+    image = Image.open("imagenes/" + archivo).convert("RGB") 
+
+    #normalization
+    size = (224, 224)
+    image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
     image_array = np.asarray(image)
     normalized_image_array = (image_array.astype(np.float32) / 127.5) - 1
-    return normalized_image_array
+    data[0] = normalized_image_array
 
-start_time = time.time()
-for i in range(0, len(archivos), batch_size):
-    batch_files = archivos[i:i+batch_size]
-    batch_data = np.ndarray(shape=(len(batch_files), 224, 224, 3), dtype=np.float32)
+    #prediction
+    prediction = model.predict(data)
+    index = np.argmax(prediction)
+    class_name = class_names[index]
+    confidence_score = prediction[0][index]
 
-    for j, archivo in enumerate(batch_files):
-        image_path = os.path.join(carpeta, archivo)
-        batch_data[j] = preprocess_image(image_path)
-
-    predictions = model.predict(batch_data)
-
-    for k, archivo in enumerate(batch_files):
-
-        index = np.argmax(predictions[k])
-        predicted_class = class_names[index].strip() 
-
-        true_class = archivo[:-5]  
-
-        confidence_score = predictions[k][index]
-
-        print(f"\n\n           Image: {count}, {archivo}")
-        print(f"       Predicted: {predicted_class}")
-        print(f"           Label: {true_class}")
-        print(f"Confidence Score: {confidence_score:.4f}")
-
-        if predicted_class.lower() == true_class.lower():
-            score += 1
-        print(f"     Total Score: {score}")
-        count += 1
+    # Print prediction and confidence score
+    predicted = str(class_name[2:-1])
+    predicted = "Aluminium Cans" if predicted == "Aluminiuns cans" else predicted
+    label = str(archivo[:-5])
+    print("\n\n           Image:", count, archivo)
+    print("       Predicted:", predicted)
+    print("           Label:", label)
+    print("Confidence Score:", confidence_score)
+    if predicted == label:
+        score += 1
+    print("     Total Score:", score)
+    count +=1
 
 end_time = time.time()
-print(f"\n\nTiempo total de inferencia: {end_time - start_time:.2f} segundos")
+inference_time = end_time - start_time
 
-print(f"\n\n\nThe Model Score is: {score}/{count - 1}!")
-print(f"\nThe Success Probability is: {score / (count - 1):.2%}")
+print(f"\n\nTiempo total de inferencia: {inference_time} segundos")
+
+print("\n\n\nThe Model Score is:", str(score) + f"/{count - 1}!")
+print("\nThe Success Probability is:", int(score) / (count
