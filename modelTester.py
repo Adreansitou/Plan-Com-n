@@ -5,11 +5,11 @@ import numpy as np
 import time
 
 np.set_printoptions(suppress=True) # Disable scientific notation for clarity
-model = load_model('model/keras_model.h5', compile=False)
+model = load_model('keras_model.h5', compile=False)
 class_names = open("labels.txt", "r").readlines()
 data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
 
-carpeta = "C:\\Users\\ftorr\\Downloads\\converted_keras\\imagenes"
+carpeta = "C:\\Github\\Plan-Comun\\Datasets\\Bottle"
 archivos = os.listdir(carpeta)
 
 score = 0
@@ -18,7 +18,7 @@ count = 1
 start_time = time.time()
 
 for archivo in archivos:
-    image = Image.open("imagenes/" + archivo).convert("RGB") 
+    image = Image.open("Datasets/Bottle/" + archivo).convert("RGB") 
 
     #normalization
     size = (224, 224)
@@ -36,7 +36,9 @@ for archivo in archivos:
     # Print prediction and confidence score
     predicted = str(class_name[2:-1])
     predicted = "Aluminium Cans" if predicted == "Aluminiuns cans" else predicted
-    label = str(archivo[:-5])
+
+    
+    label = str(archivo[:-7])
     print("\n\n           Image:", count, archivo)
     print("       Predicted:", predicted)
     print("           Label:", label)
