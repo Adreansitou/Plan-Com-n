@@ -52,4 +52,4 @@ inference_time = end_time - start_time
 print(f"\n\nTiempo total de inferencia: {inference_time} segundos")
 
 print("\n\n\nThe Model Score is:", str(score) + f"/{count - 1}!")
-print("\nThe Success Probability is:", int(score) / (count
+print("\nThe Success Probability is:", int(score) / (count - 1))
